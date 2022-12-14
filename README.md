@@ -2,6 +2,8 @@
 
 Comprehensive project exploring Angular capabilities by building a web app that keeps track of a shopping list and recipes.
 
+This version specifically is modified to use ngRx to manage application state.
+
 Referencing the Udemy course Angular - The Complete Guide (2022 Edition) by Maximilian Schwarzmüller.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 14.2.6.
