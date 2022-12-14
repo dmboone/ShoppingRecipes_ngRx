@@ -61,7 +61,7 @@ export function shoppingListReducer(state: State = initialState, action: Shoppin
             return {
                 ...state,
                 ingredients: state.ingredients.filter((ig, igIndex) => {
-                    igIndex !== state.editedIngredientIndex;
+                    return igIndex !== state.editedIngredientIndex;
                 }), // returns copy of ingredients array that has filtered out the ingredient at the given index
                 editedIngredientIndex: -1,
                 editedIngredient: null
