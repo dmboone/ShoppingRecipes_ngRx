@@ -1,5 +1,6 @@
 import { Action } from "@ngrx/store";
-import { Ingredient } from "../shared/ingredient.model";
+import { Ingredient } from "../../shared/ingredient.model";
+import { ADD_INGREDIENT } from "./shopping-list.actions";
 
 const initialState = { // states should normally be javascript objects
     ingredients: [
@@ -12,7 +13,7 @@ const initialState = { // states should normally be javascript objects
 // notice that state is given a default value of initialState
 export function shoppingListReducer(state = initialState, action: Action){ 
     switch (action.type){
-        case 'ADD_INGREDIENT': // convention is to use all uppercase for your action identifiers, but the names are up to you
+        case ADD_INGREDIENT: // convention is to use all uppercase for your action identifiers, but the names themselves are up to you
             // must never edit the existing state, instead return a new object which will replace the old state
             return {
                 ...state, // good practice to call spread operator here to make sure you copy everything from previous state but in this case this line isn't necessary just good habit
