@@ -1,0 +1,42 @@
+<div class="row">
+    <div class="col-xs-12">
+        <!-- we are using the template-driven form approach here -->
+        <form (ngSubmit)="onSubmit(f)" #f="ngForm">
+            <div class="row">
+                <div class="col-sm-5 form-group">
+                    <label for="name">Name</label>
+                    <input 
+                    type="text" 
+                    id="name" 
+                    class="form-control"
+                    name="name"
+                    ngModel
+                    required>
+                </div>
+                <div class="col-sm-2 form-group">
+                    <label for="amount">Amount</label>
+                    <input 
+                    type="number" 
+                    id="amount" 
+                    class="form-control"
+                    name="amount"
+                    ngModel
+                    required
+                    pattern="^[1-9]+[0-9]*$"
+                    >
+                    <!-- pattern validator allows you to restrict input based on a regular expression -->
+                    <!-- in our case we're making sure that the number is greater than 0 -->
+                    <!-- when property binding to string can forgo brackets around pattern -->
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    <!-- the button with type submit will be the one that, when clicked, triggers the onAddItem function that has been bound to ngSubmit up above -->
+                    <button [ngClass]="editMode ? 'btn-warning' : 'btn-success'" class="btn" type="submit" [disabled]="!f.valid">{{ editMode ? 'Update' : 'Add' }}</button>
+                    <button *ngIf="editMode" class="btn btn-danger" type="button" (click)="onDelete()">Delete</button>
+                    <button class="btn btn-primary" type="button" (click)="onClear()">Clear</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
