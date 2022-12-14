@@ -27,9 +27,9 @@ export function shoppingListReducer(state: State = initialState, action: Shoppin
         case ShoppingListActions.ADD_INGREDIENT: // convention is to use all uppercase for your action identifiers, but the names themselves are up to you
             // must never edit the existing state, instead return a new object which will replace the old state
             return {
-                ...state, // good practice to call spread operator here to make sure you copy everything from previous state but in this case this line isn't necessary just good habit
+                ...state, // make sure you copy everything from previous state
                 ingredients: [
-                    ...state.ingredients, // spread operator copies everything from current state (i.e. the current list of ingredients) and adds to this ingredients array we are creating to return
+                    ...state.ingredients, // spread operator copies all the ingredients from current state and adds to this ingredients array we are creating to return
                     action.payload // lastly we will add the new ingredient
                 ]
             };
@@ -42,26 +42,42 @@ export function shoppingListReducer(state: State = initialState, action: Shoppin
                 ]
             };
         case ShoppingListActions.UPDATE_INGREDIENT:
-            const ingredient = state.ingredients[action.payload.index]; // grab the ingredient and amount that is currently at that index in our current state of the ingredients array
+            const ingredient = state.ingredients[state.editedIngredientIndex]; // grab the ingredient and amount that is currently at that index in our current state of the ingredients array
             const updatedIngredient = { // defines the updated ingredient
                 ...ingredient, // this line isn't really needed in this specific case but this line basically copies the old ingredient info at the provided index from above...
-                ...action.payload.ingredient // then we override it all with the new ingredient info
+                ...action.payload // then we override it all with the new ingredient info
             };
             const updatedIngredients = [...state.ingredients]; // copies all the other ingredients from the current state of the ingredients array
-            updatedIngredients[action.payload.index] = updatedIngredient; // replaces the old ingredient at the given index with the updated ingredient
+            updatedIngredients[state.editedIngredientIndex] = updatedIngredient; // replaces the old ingredient at the given index with the updated ingredient
         
             return { // now we return the new Ingredients list
                 ...state,
-                ingredients: updatedIngredients // plus the updated ingredient
+                ingredients: updatedIngredients, // plus the updated ingredient
+                editedIngredientIndex: -1,
+                editedIngredient: null
             };
         case ShoppingListActions.DELETE_INGREDIENT:
 
             return {
                 ...state,
                 ingredients: state.ingredients.filter((ig, igIndex) => {
-                    igIndex !== action.payload;
-                }) // returns copy of ingredients array that has filtered out the ingredient at the given index
+                    igIndex !== state.editedIngredientIndex;
+                }), // returns copy of ingredients array that has filtered out the ingredient at the given index
+                editedIngredientIndex: -1,
+                editedIngredient: null
             };
+        case ShoppingListActions.START_EDIT:
+            return {
+                ...state,
+                editedIngredientIndex: action.payload,
+                editedIngredient: {...state.ingredients[action.payload]}
+            }
+        case ShoppingListActions.STOP_EDIT:
+            return {
+                ...state,
+                editedIngredient: null,
+                editedIngredientIndex: -1
+            }
         default:
             return state; // default will return initial state
     }

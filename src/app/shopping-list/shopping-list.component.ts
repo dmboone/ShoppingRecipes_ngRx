@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { Observable, Subscription } from 'rxjs';
 import { Ingredient } from '../shared/ingredient.model';
 import { ShoppingListService } from './shopping-list.service';
 import * as fromShoppingList from './store/shopping-list.reducer';
+import * as ShoppingListActions from './store/shopping-list.actions';
 
 @Component({
   selector: 'app-shopping-list',
@@ -28,9 +29,11 @@ export class ShoppingListComponent implements OnInit {
   }
 
   onEditItem(index: number){
-    this.slService.startedEditing.next(index); // startingEditing is a Subject so we can treat it like an observable and emit 
+    // replacing the line below with ngRx version
+    // this.slService.startedEditing.next(index); // startingEditing is a Subject so we can treat it like an observable and emit 
                                               // event information; in this case we emit the index in the array where
                                               // the specific ingredient that is being edited is located
+    this.store.dispatch(new ShoppingListActions.StartEdit(index));
   }
 
   ngOnDestroy(){
