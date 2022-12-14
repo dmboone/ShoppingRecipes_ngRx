@@ -10,7 +10,7 @@ const initialState = { // states should normally be javascript objects
 
 // our reducer will take in the current state and the action we want to perform 
 // notice that state is given a default value of initialState
-export function shoppingListReducer(state = initialState, action: ShoppingListActions.AddIngredient){ 
+export function shoppingListReducer(state = initialState, action: ShoppingListActions.ShoppingListActions){
     switch (action.type){
         case ShoppingListActions.ADD_INGREDIENT: // convention is to use all uppercase for your action identifiers, but the names themselves are up to you
             // must never edit the existing state, instead return a new object which will replace the old state
@@ -21,6 +21,14 @@ export function shoppingListReducer(state = initialState, action: ShoppingListAc
                     action.payload // lastly we will add the new ingredient
                 ]
             };
+        case ShoppingListActions.ADD_INGREDIENTS:
+            return {
+                ...state,
+                ingredients: [
+                    ...state.ingredients,
+                    ...action.payload // adds the multiple new ingredients
+                ]
+            }
         default:
             return state; // default will return initial state
     }
