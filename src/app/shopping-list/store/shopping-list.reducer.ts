@@ -7,10 +7,6 @@ export interface State {
     editedIngredientIndex: number;
 }
 
-export interface AppState{
-    shoppingList: State;
-}
-
 const initialState: State = { // states should normally be javascript objects
     ingredients: [
         new Ingredient('Apples', 5),
