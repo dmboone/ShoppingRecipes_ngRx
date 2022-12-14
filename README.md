@@ -1,4 +1,4 @@
-# ShoppingRecipes
+# ShoppingRecipes_ngRx
 
 Comprehensive project exploring Angular capabilities by building a web app that keeps track of a shopping list and recipes.
 
