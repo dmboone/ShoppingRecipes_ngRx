@@ -20,6 +20,8 @@ export function shoppingListReducer(state = initialState, action: ShoppingListAc
                     ...state.ingredients, // spread operator copies everything from current state (i.e. the current list of ingredients) and adds to this ingredients array we are creating to return
                     action.payload // lastly we will add the new ingredient
                 ]
-            }
+            };
+        default:
+            return state; // default will return initial state
     }
 }
