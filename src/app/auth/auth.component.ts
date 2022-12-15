@@ -27,6 +27,9 @@ export class AuthComponent implements OnInit, OnDestroy{
         this.store.select('auth').subscribe(authState => { // ngRx implementation to handle observable
             this.isLoading = authState.loading;
             this.error = authState.authError;
+            if(this.error){
+                this.showErrorAlert(this.error);
+            }
         });
     }
 

@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Actions, Effect, ofType } from '@ngrx/effects';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import * as AuthActions from './auth.actions';
 import { of } from 'rxjs';
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 
 // effects files allow you to perform other actions or sideffects that you wouldn't
 // handle in the reducer/things that are not changing the state of anything but are
@@ -40,23 +41,49 @@ export class AuthEffects{
                 map(resData => {
                     const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000); // calculating the time at which the user token will expire
 
-                    return of(new AuthActions.Login({ // must return a non error observable by using of()
+                    return new AuthActions.Login({
                         email: resData.email,
                         userId: resData.localId,
                         token: resData.idToken,
                         expirationDate: expirationDate
-                    })); 
+                    });
                 }),
-                catchError(error => {
-                    return of(); // must return a non error observable by using of()
+                catchError(errorRes => {
+                    let errorMessage = 'An unknown error occured!'; // default error message
+
+                    if(!errorRes.error || !errorRes.error.error){ // checks if error format is different than expected
+                        return of(new AuthActions.LoginFail(errorMessage));
+                    }
+
+                    switch(errorRes.error.error.message){ // switch to check for cases in which we can deliver a more specific error message
+                        case 'EMAIL_EXISTS':
+                            errorMessage = 'This email exists already';
+                            break;
+                        case 'EMAIL_NOT_FOUND':
+                            errorMessage = 'This email does not exist';
+                            break;
+                        case 'INVALID_PASSWORD':
+                            errorMessage = 'This password is not correct';
+                            break;
+                    }
+
+                    return of(new AuthActions.LoginFail(errorMessage)); // must return a non error observable by using of()
                 })
             );
-        }),
+        })
+    );
 
+    @Effect({dispatch: false}) // letting ngRx know that this effect doesn't yield a dispatchable action at the end
+    authSuccess = this.actions$.pipe(
+        ofType(AuthActions.LOGIN),
+        tap(()=>{
+            this.router.navigate(['./']);
+        })
     );
 
     constructor(
         private actions$: Actions, // naming convention for effects is usually $
         private http: HttpClient,
+        private router: Router
     ){} 
 }
