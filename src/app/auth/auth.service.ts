@@ -22,7 +22,7 @@ export interface AuthResponseData{ // defining the firebase sign up response; we
 @Injectable({providedIn: 'root'})
 export class AuthService{
 
-    user = new BehaviorSubject<User>(null); // can get access to the currently active user even if we only subscribe after the user has been emitted
+    // user = new BehaviorSubject<User>(null); // can get access to the currently active user even if we only subscribe after the user has been emitted
     private tokenExpirationTimer: any;
 
     constructor(private http: HttpClient, private router: Router, private store: Store<fromApp.AppState>){}
