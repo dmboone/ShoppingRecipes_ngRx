@@ -114,8 +114,8 @@ export class AuthEffects{
     );
 
     @Effect({dispatch: false}) // letting ngRx know that this effect doesn't yield a dispatchable action at the end
-    authSuccess = this.actions$.pipe(
-        ofType(AuthActions.AUTHENTICATE_SUCCESS),
+    authRedirect = this.actions$.pipe(
+        ofType(AuthActions.AUTHENTICATE_SUCCESS, AuthActions.LOGOUT),
         tap(()=>{
             this.router.navigate(['./']);
         })

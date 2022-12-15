@@ -27,39 +27,6 @@ export class AuthService{
 
     constructor(private http: HttpClient, private router: Router, private store: Store<fromApp.AppState>){}
 
-    signup(email: string, password: string){ // post request using firebase authentication api which requires specific fields as seen below
-        return this.http.post<AuthResponseData>( // <> tells Typescript that the response will be of type AuthResponseData, which we have defined in the interface above
-            'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + environment.firebaseAPIKey, // this is the endpoint for the signup feature of firebase's authentication api
-            { // firebase requires us to provide this information when making a post request to their authentication api for sign up
-                email: email,
-                password: password,
-                returnSecureToken: true
-            }
-        )
-        .pipe(
-            catchError(this.handleError), // pipe to handle error response
-            tap(resData => { // pipe to create user model from signup response data
-                this.handleAuthentication(resData.email, resData.localId, resData.idToken, +resData.expiresIn);
-            })
-        ); 
-    }
-
-    login(email: string, password: string){
-        return this.http.post<AuthResponseData>('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + environment.firebaseAPIKey, 
-            {
-                email: email,
-                password: password,
-                returnSecureToken: true
-            }
-        )
-        .pipe(
-            catchError(this.handleError), // pipe to handle error response
-            tap(resData => { // pipe to create user model from login response data
-                this.handleAuthentication(resData.email, resData.localId, resData.idToken, +resData.expiresIn);
-            })
-        );
-    }
-
     autoLogin(){
         const userData: {
             email: string;
@@ -93,12 +60,11 @@ export class AuthService{
     logout(){
     //    this.user.next(null); // replace with ngRx version below
         this.store.dispatch(new AuthActions.Logout()); // ngRx version
-       this.router.navigate(['/auth']);
-       localStorage.removeItem('userData');
-       if(this.tokenExpirationTimer){ // if a timer is already running when user clicks logout
-        clearTimeout(this.tokenExpirationTimer); // clears it
-       }
-       this.tokenExpirationTimer = null; // resets it for the next login session
+        localStorage.removeItem('userData');
+        if(this.tokenExpirationTimer){ // if a timer is already running when user clicks logout
+            clearTimeout(this.tokenExpirationTimer); // clears it
+        }
+        this.tokenExpirationTimer = null; // resets it for the next login session
     }
 
     autoLogout(expirationDuration: number){
