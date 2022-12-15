@@ -3,16 +3,6 @@ import { Store } from "@ngrx/store";
 import * as fromApp from '../store/app.reducer';
 import * as AuthActions from './store/auth.actions';
 
-export interface AuthResponseData{ // defining the firebase sign up response; we export this so we can use it in the auth component as well
-    kind: string;
-    idToken: string;
-    email: string;
-    refreshToken: string;
-    expiresIn: string;
-    localId: string;
-    registered?: boolean; // this is an optional field because the signup request does not provide this but the login request does
-}
-
 @Injectable({providedIn: 'root'})
 export class AuthService{
     private tokenExpirationTimer: any;
