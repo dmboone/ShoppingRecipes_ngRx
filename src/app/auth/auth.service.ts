@@ -76,7 +76,7 @@ export class AuthService{
 
             if(loadedUser.token){
                 // this.user.next(loadedUser); //replacing with ngRx version below
-                this.store.dispatch(new AuthActions.Login( // ngRx version
+                this.store.dispatch(new AuthActions.AuthenticateSuccess( // ngRx version
                     {
                         email: loadedUser.email,
                         userId: loadedUser.id,
@@ -111,7 +111,7 @@ export class AuthService{
         const expirationDate = new Date(new Date().getTime() + expiresIn * 1000); // calculating the time at which the user token will expire
         const user = new User(email, userId, token, expirationDate); // creating a user based on the model we defined in user.model.ts
         // this.user.next(user); // replace with ngRx version
-        this.store.dispatch(new AuthActions.Login({ //ngRx version
+        this.store.dispatch(new AuthActions.AuthenticateSuccess({ //ngRx version
             email: email,
             userId: userId,
             token: token,

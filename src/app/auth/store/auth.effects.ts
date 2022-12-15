@@ -27,6 +27,12 @@ export interface AuthResponseData{ // defining the firebase sign up response; we
 
 @Injectable()
 export class AuthEffects{
+    @Effect()
+    authSignup = this.actions$.pipe(
+        ofType(AuthActions.SIGNUP_START),
+        
+    )
+
     @Effect() // need to add this decorator so that this is recognized as an effect
     authLogin = this.actions$.pipe(
         ofType(AuthActions.LOGIN_START),
@@ -41,7 +47,7 @@ export class AuthEffects{
                 map(resData => {
                     const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000); // calculating the time at which the user token will expire
 
-                    return new AuthActions.Login({
+                    return new AuthActions.AuthenticateSuccess({
                         email: resData.email,
                         userId: resData.localId,
                         token: resData.idToken,
@@ -52,7 +58,7 @@ export class AuthEffects{
                     let errorMessage = 'An unknown error occured!'; // default error message
 
                     if(!errorRes.error || !errorRes.error.error){ // checks if error format is different than expected
-                        return of(new AuthActions.LoginFail(errorMessage));
+                        return of(new AuthActions.AuthenticateFail(errorMessage));
                     }
 
                     switch(errorRes.error.error.message){ // switch to check for cases in which we can deliver a more specific error message
@@ -67,7 +73,7 @@ export class AuthEffects{
                             break;
                     }
 
-                    return of(new AuthActions.LoginFail(errorMessage)); // must return a non error observable by using of()
+                    return of(new AuthActions.AuthenticateFail(errorMessage)); // must return a non error observable by using of()
                 })
             );
         })
@@ -75,7 +81,7 @@ export class AuthEffects{
 
     @Effect({dispatch: false}) // letting ngRx know that this effect doesn't yield a dispatchable action at the end
     authSuccess = this.actions$.pipe(
-        ofType(AuthActions.LOGIN),
+        ofType(AuthActions.AUTHENTICATE_SUCCESS),
         tap(()=>{
             this.router.navigate(['./']);
         })
