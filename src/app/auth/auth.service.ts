@@ -5,6 +5,9 @@ import { BehaviorSubject, throwError } from 'rxjs';
 import { User } from "./user.model";
 import { Router } from "@angular/router";
 import { environment } from '../../environments/environment';
+import { Store } from "@ngrx/store";
+import * as fromApp from '../store/app.reducer';
+import * as AuthActions from './store/auth.actions';
 
 export interface AuthResponseData{ // defining the firebase sign up response; we export this so we can use it in the auth component as well
     kind: string;
@@ -22,7 +25,7 @@ export class AuthService{
     user = new BehaviorSubject<User>(null); // can get access to the currently active user even if we only subscribe after the user has been emitted
     private tokenExpirationTimer: any;
 
-    constructor(private http: HttpClient, private router: Router){}
+    constructor(private http: HttpClient, private router: Router, private store: Store<fromApp.AppState>){}
 
     signup(email: string, password: string){ // post request using firebase authentication api which requires specific fields as seen below
         return this.http.post<AuthResponseData>( // <> tells Typescript that the response will be of type AuthResponseData, which we have defined in the interface above
@@ -72,7 +75,15 @@ export class AuthService{
             const loadedUser = new User(userData.email, userData.id, userData._token, new Date(userData._tokenExpirationDate));
 
             if(loadedUser.token){
-                this.user.next(loadedUser);
+                // this.user.next(loadedUser); //replacing with ngRx version below
+                this.store.dispatch(new AuthActions.Login( // ngRx version
+                    {
+                        email: loadedUser.email,
+                        userId: loadedUser.id,
+                        token: loadedUser.token,
+                        expirationDate: new Date(userData._tokenExpirationDate)
+                    }
+                ));
                 const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
                 this.autoLogout(expirationDuration);
             }
@@ -80,7 +91,8 @@ export class AuthService{
     }
 
     logout(){
-       this.user.next(null); // sets user back to null
+    //    this.user.next(null); // replace with ngRx version below
+        this.store.dispatch(new AuthActions.Logout()); // ngRx version
        this.router.navigate(['/auth']);
        localStorage.removeItem('userData');
        if(this.tokenExpirationTimer){ // if a timer is already running when user clicks logout
@@ -98,7 +110,13 @@ export class AuthService{
     private handleAuthentication(email: string, userId: string, token: string, expiresIn: number){ // we define how to handle authentication here in one place since we will reuse this for both login and signup
         const expirationDate = new Date(new Date().getTime() + expiresIn * 1000); // calculating the time at which the user token will expire
         const user = new User(email, userId, token, expirationDate); // creating a user based on the model we defined in user.model.ts
-        this.user.next(user); // use subject to emit this as our now currently logged in user
+        // this.user.next(user); // replace with ngRx version
+        this.store.dispatch(new AuthActions.Login({ //ngRx version
+            email: email,
+            userId: userId,
+            token: token,
+            expirationDate: expirationDate
+        }));
         this.autoLogout(expiresIn * 1000); //converts to milliseconds
         localStorage.setItem('userData', JSON.stringify(user)); // saving user info to local storage so that you can refresh without being logged out
     }
