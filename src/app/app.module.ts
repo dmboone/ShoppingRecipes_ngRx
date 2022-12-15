@@ -9,6 +9,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './shared/shared.module';
 import { CoreModule } from './core.module';
 import * as fromApp from './store/app.reducer';
+import { EffectsModule } from '@ngrx/effects';
+import { AuthEffects } from './auth/store/auth.effects';
 @NgModule({
   declarations: [
     AppComponent,
@@ -19,6 +21,7 @@ import * as fromApp from './store/app.reducer';
     HttpClientModule, // must include this import to use the http client
     AppRoutingModule,
     StoreModule.forRoot(fromApp.appReducer), // enables us to use our ngRx reducers
+    EffectsModule.forRoot([AuthEffects]),
     SharedModule,
     CoreModule // now contains our services which we can use application wide and make sure there is only one instance
               // so any changes should permeate throughout entire application

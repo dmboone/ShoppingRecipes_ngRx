@@ -4,6 +4,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import * as AuthActions from './auth.actions';
 import { of } from 'rxjs';
+import { Injectable } from '@angular/core';
 
 // effects files allow you to perform other actions or sideffects that you wouldn't
 // handle in the reducer/things that are not changing the state of anything but are
@@ -23,6 +24,7 @@ export interface AuthResponseData{ // defining the firebase sign up response; we
     registered?: boolean; // this is an optional field because the signup request does not provide this but the login request does
 }
 
+@Injectable()
 export class AuthEffects{
     @Effect() // need to add this decorator so that this is recognized as an effect
     authLogin = this.actions$.pipe(
@@ -35,13 +37,19 @@ export class AuthEffects{
                     returnSecureToken: true
                 }
             ).pipe( // will need to call pipe at a different level to handle catching errors without killing the observable
-                catchError(error => {
-                    of(); // must return a non error observable by using of()
-                }),
                 map(resData => {
-                    of(); // must return a non error observable by using of()
-                }
-                )
+                    const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000); // calculating the time at which the user token will expire
+
+                    return of(new AuthActions.Login({ // must return a non error observable by using of()
+                        email: resData.email,
+                        userId: resData.localId,
+                        token: resData.idToken,
+                        expirationDate: expirationDate
+                    })); 
+                }),
+                catchError(error => {
+                    return of(); // must return a non error observable by using of()
+                })
             );
         }),
 
