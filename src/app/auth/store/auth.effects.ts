@@ -25,13 +25,67 @@ export interface AuthResponseData{ // defining the firebase sign up response; we
     registered?: boolean; // this is an optional field because the signup request does not provide this but the login request does
 }
 
+const handleAuthentication = (expiresIn: number, email: string, userId: string, token: string) => {
+    const expirationDate = new Date(new Date().getTime() + +expiresIn * 1000); // calculating the time at which the user token will expire
+    return new AuthActions.AuthenticateSuccess({
+        email: email,
+        userId: userId,
+        token: token,
+        expirationDate: expirationDate
+    });
+};
+
+const handleError = (errorRes: any) => {
+    let errorMessage = 'An unknown error occured!'; // default error message
+    
+    if(!errorRes.error || !errorRes.error.error){ // checks if error format is different than expected
+        return of(new AuthActions.AuthenticateFail(errorMessage));
+    }
+
+    switch(errorRes.error.error.message){ // switch to check for cases in which we can deliver a more specific error message
+        case 'EMAIL_EXISTS':
+            errorMessage = 'This email exists already';
+            break;
+        case 'EMAIL_NOT_FOUND':
+            errorMessage = 'This email does not exist';
+            break;
+        case 'INVALID_PASSWORD':
+            errorMessage = 'This password is not correct';
+            break;
+    }
+
+    return of(new AuthActions.AuthenticateFail(errorMessage)); // must return a non error observable by using of()
+};
+
 @Injectable()
 export class AuthEffects{
     @Effect()
     authSignup = this.actions$.pipe(
         ofType(AuthActions.SIGNUP_START),
-        
-    )
+        switchMap((signupAction: AuthActions.SignupStart) => {
+            return this.http.post<AuthResponseData>( // <> tells Typescript that the response will be of type AuthResponseData, which we have defined in the interface above
+                'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + environment.firebaseAPIKey, // this is the endpoint for the signup feature of firebase's authentication api
+                { // firebase requires us to provide this information when making a post request to their authentication api for sign up
+                    email: signupAction.payload.email,
+                    password: signupAction.payload.password,
+                    returnSecureToken: true
+                }
+            )
+            .pipe(
+                map(resData => {
+                    return handleAuthentication(
+                        +resData.expiresIn, 
+                        resData.email, 
+                        resData.localId, 
+                        resData.idToken
+                    );
+                }),
+                catchError(errorRes => {
+                    return handleError(errorRes);
+                }) 
+            )
+        })
+    );
 
     @Effect() // need to add this decorator so that this is recognized as an effect
     authLogin = this.actions$.pipe(
@@ -45,35 +99,15 @@ export class AuthEffects{
                 }
             ).pipe( // will need to call pipe at a different level to handle catching errors without killing the observable
                 map(resData => {
-                    const expirationDate = new Date(new Date().getTime() + +resData.expiresIn * 1000); // calculating the time at which the user token will expire
-
-                    return new AuthActions.AuthenticateSuccess({
-                        email: resData.email,
-                        userId: resData.localId,
-                        token: resData.idToken,
-                        expirationDate: expirationDate
-                    });
+                    return handleAuthentication(
+                        +resData.expiresIn, 
+                        resData.email, 
+                        resData.localId, 
+                        resData.idToken
+                    );
                 }),
                 catchError(errorRes => {
-                    let errorMessage = 'An unknown error occured!'; // default error message
-
-                    if(!errorRes.error || !errorRes.error.error){ // checks if error format is different than expected
-                        return of(new AuthActions.AuthenticateFail(errorMessage));
-                    }
-
-                    switch(errorRes.error.error.message){ // switch to check for cases in which we can deliver a more specific error message
-                        case 'EMAIL_EXISTS':
-                            errorMessage = 'This email exists already';
-                            break;
-                        case 'EMAIL_NOT_FOUND':
-                            errorMessage = 'This email does not exist';
-                            break;
-                        case 'INVALID_PASSWORD':
-                            errorMessage = 'This password is not correct';
-                            break;
-                    }
-
-                    return of(new AuthActions.AuthenticateFail(errorMessage)); // must return a non error observable by using of()
+                    return handleError(errorRes);
                 })
             );
         })
