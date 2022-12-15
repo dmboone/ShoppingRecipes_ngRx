@@ -7,6 +7,7 @@ import { of } from 'rxjs';
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { User } from '../user.model';
+import { AuthService } from '../auth.service';
 
 // effects files allow you to perform other actions or sideffects that you wouldn't
 // handle in the reducer/things that are not changing the state of anything but are
@@ -75,6 +76,9 @@ export class AuthEffects{
                 }
             )
             .pipe(
+                tap(resData => {
+                    this.authService.setLogoutTimer(+resData.expiresIn * 1000);
+                }),
                 map(resData => {
                     return handleAuthentication(
                         +resData.expiresIn, 
@@ -101,6 +105,9 @@ export class AuthEffects{
                     returnSecureToken: true
                 }
             ).pipe( // will need to call pipe at a different level to handle catching errors without killing the observable
+                tap(resData => {
+                    this.authService.setLogoutTimer(+resData.expiresIn * 1000);
+                }),
                 map(resData => {
                     return handleAuthentication(
                         +resData.expiresIn, 
@@ -118,7 +125,7 @@ export class AuthEffects{
 
     @Effect({dispatch: false}) // letting ngRx know that this effect doesn't yield a dispatchable action at the end
     authRedirect = this.actions$.pipe(
-        ofType(AuthActions.AUTHENTICATE_SUCCESS, AuthActions.LOGOUT),
+        ofType(AuthActions.AUTHENTICATE_SUCCESS),
         tap(()=>{
             this.router.navigate(['./']);
         })
@@ -143,6 +150,8 @@ export class AuthEffects{
                 const loadedUser = new User(userData.email, userData.id, userData._token, new Date(userData._tokenExpirationDate));
     
                 if(loadedUser.token){
+                    const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
+                    this.authService.setLogoutTimer(expirationDuration);
                     return new AuthActions.AuthenticateSuccess( // ngRx version
                         {
                             email: loadedUser.email,
@@ -151,9 +160,6 @@ export class AuthEffects{
                             expirationDate: new Date(userData._tokenExpirationDate)
                         }
                     );
-
-                    // const expirationDuration = new Date(userData._tokenExpirationDate).getTime() - new Date().getTime();
-                    // this.autoLogout(expirationDuration);
                 }
 
                 return {type: 'DUMMY'};
@@ -165,13 +171,16 @@ export class AuthEffects{
     authLogout = this.actions$
     .pipe(
         ofType(AuthActions.LOGOUT), 
-        tap(()=>{
+        tap(() => {
+            this.authService.clearLogoutTimer();
         localStorage.removeItem('userData');
+        this.router.navigate(['/auth']);
     }));
 
     constructor(
         private actions$: Actions, // naming convention for effects is usually $
         private http: HttpClient,
-        private router: Router
+        private router: Router,
+        private authService: AuthService
     ){} 
 }
