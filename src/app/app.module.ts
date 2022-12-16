@@ -13,6 +13,8 @@ import * as fromApp from './store/app.reducer';
 import { EffectsModule } from '@ngrx/effects';
 import { AuthEffects } from './auth/store/auth.effects';
 import { environment } from 'src/environments/environment';
+import { StoreRouterConnectingModule } from '@ngrx/router-store';
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -26,6 +28,7 @@ import { environment } from 'src/environments/environment';
     EffectsModule.forRoot([AuthEffects]),
     SharedModule,
     StoreDevtoolsModule.instrument({ logOnly: environment.production }), // only shows when in production
+    StoreRouterConnectingModule.forRoot(),
     CoreModule // now contains our services which we can use application wide and make sure there is only one instance
               // so any changes should permeate throughout entire application
   ],                                              
