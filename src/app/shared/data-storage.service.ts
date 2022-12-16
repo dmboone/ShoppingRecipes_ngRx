@@ -1,14 +1,15 @@
 import { Injectable } from "@angular/core";
-import { HttpClient, HttpParams } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { RecipeService } from "../recipes/recipe.service";
 import { Recipe } from "../recipes/recipe.model";
-import { exhaustMap, map, take, tap } from "rxjs/operators";
-import { AuthService } from "../auth/auth.service";
-
+import { map, tap } from "rxjs/operators";
+import { Store } from "@ngrx/store";
+import * as fromApp from '../store/app.reducer';
+import * as RecipesActions from '../recipes/store/recipe.actions';
 @Injectable({providedIn: 'root'}) // always need to add this if you are going to inject a service
 // can either list the service under providers in app module or do what we do above by adding {providedIn: 'root'} to the Injectable
 export class DataStorageService{
-    constructor(private http: HttpClient, private recipeService: RecipeService, private authService: AuthService){} // create the http client variable
+    constructor(private http: HttpClient, private recipeService: RecipeService, private store: Store<fromApp.AppState>){} // create the http client variable
 
     storeRecipes(){
         const recipes = this.recipeService.getRecipes();
@@ -43,7 +44,8 @@ export class DataStorageService{
                     }); // map here means something different here; this is a javascript array method that allows us to transform the elements in the array
                 }),
                 tap(recipes => { // allows us to execute some code here in place with altering the data
-                    this.recipeService.setRecipes(recipes);
+                    // this.recipeService.setRecipes(recipes);
+                    this.store.dispatch(new RecipesActions.SetRecipes(recipes));
                 }) // we will now subscribe in the header component instead
             );
     }
