@@ -14,6 +14,7 @@ import { EffectsModule } from '@ngrx/effects';
 import { AuthEffects } from './auth/store/auth.effects';
 import { environment } from 'src/environments/environment';
 import { StoreRouterConnectingModule } from '@ngrx/router-store';
+import { RecipeEffects } from './recipes/store/recipe.effects';
 
 @NgModule({
   declarations: [
@@ -25,7 +26,7 @@ import { StoreRouterConnectingModule } from '@ngrx/router-store';
     HttpClientModule, // must include this import to use the http client
     AppRoutingModule,
     StoreModule.forRoot(fromApp.appReducer), // enables us to use our ngRx reducers
-    EffectsModule.forRoot([AuthEffects]),
+    EffectsModule.forRoot([AuthEffects, RecipeEffects]),
     SharedModule,
     StoreDevtoolsModule.instrument({ logOnly: environment.production }), // only shows when in production
     StoreRouterConnectingModule.forRoot(),
